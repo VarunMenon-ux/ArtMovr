@@ -1,0 +1,13 @@
+<!-- index.html -->
+<header>
+  <h1>Welcome to ArtMovr!</h1>
+  <form action="{% url 'search' %}" method="get">
+    <input type="text" name="searchInput" id="searchInput" placeholder="Search...">
+    <input type="radio" id="artist" name="searchType" value="artist" checked>
+    <label for="artist">Artist</label>
+    <input type="radio" id="artwork" name="searchType" value="artwork">
+    <label for="artwork">Artwork</label>
+    <button type="submit">Search</button>
+  </form>
+</header> 
+

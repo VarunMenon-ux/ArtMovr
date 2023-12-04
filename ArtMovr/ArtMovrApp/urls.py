@@ -15,9 +15,17 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path,include
+from django.urls import path
+from django.urls.resolvers import URLPattern
+import ArtMovrApp.views as views
+
+# urlpatterns = [
+#     path('searchByArtist/', views.search),
+#     path('admin/', admin.site.urls),
+# ]
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('',include('ArtMovrApp.urls')),
+    path('', views.index, name='index'),  # URL pattern for the main page
+    path('search/', views.search, name='search'),  # URL pattern for the search functionality
+    # You can add more paths as needed for other functionalities
 ]

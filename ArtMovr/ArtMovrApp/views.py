@@ -1,119 +1,141 @@
 from django.shortcuts import render
-from django.http import HttpResponse
-from SPARQLWrapper import SPARQLWrapper, RDFXML
-from SPARQLWrapper.Wrapper import JSON
+from django.http import request
+from SPARQLWrapper import DIGEST, SPARQLWrapper, JSON, BASIC, RDFXML
 from rdflib import Graph
 from django.views.decorators.csrf import csrf_exempt
+from ArtMovrApp.templates import *
+from django.shortcuts import render
+import stardog
+from django.http import HttpResponse
 
-# Create your views here.
+sparql = SPARQLWrapper("https://sd-db794fc3.stardog.cloud:5820/Vfinal/query")
+# url = "https://sd-db794fc3.stardog.cloud:5820/<your-database>/query"
+# username = "hello"
+# password = "hellohello123"
 
-def searchArtwork(keystring):
-    #artworkURL=[]
-    artworkTitle=[]
-    #artistId=[]
-    #artistName=list()
-    #artistPublicCaption=list()
-    #artistImage=list()
-    sparql = SPARQLWrapper("https://sd-db794fc3.stardog.cloud:5820")
+# connection_details = {
+#     'endpoint': 'https://sd-db794fc3.stardog.cloud:5820/',
+#     'username': 'hello',
+#     'password': 'hellohello123'
+# }
 
-    sparql.setQuery("""
-    SELECT DISTINCT ?obj_2 ?obj_1 ?obj_0
-    FROM <tag:stardog:api:context:default>
-    FROM <tag:stardog:designer:Vfinal:data:MetObjects>
-    FROM <tag:stardog:designer:Vfinal:data:Artworks>
-    WHERE {
-    {
-        ?obj_0 a http://www.semanticweb.org/darsh/ontologies/2023/10/museum#Artist .
-        ?obj_1 a http://www.semanticweb.org/darsh/ontologies/2023/10/museum#Artwork .
-        ?obj_2 a http://www.semanticweb.org/darsh/ontologies/2023/10/museum#Department .
-        ?obj_0 http://www.semanticweb.org/darsh/ontologies/2023/10/museum#hasCreated ?obj_1 .
-        ?obj_1 http://www.semanticweb.org/darsh/ontologies/2023/10/museum#hasDepartment ?obj_2 .
+# def setup_sparql():
+#     sparql = SPARQLWrapper("https://sd-db794fc3.stardog.cloud:5820/")
+#     sparql.setHTTPAuth(BASIC)
+#     sparql.setCredentials("aadmin1", "531project123")
+#     return sparql
 
-  }
-}
-    }
-    Limit 5
-    """)
-
+def setup_sparql():
+    sparql = SPARQLWrapper("https://sd-db794fc3.stardog.cloud:5820/Vfinal/query")
+    sparql.setHTTPAuth(BASIC)
+    sparql.setCredentials('hello', 'hellohello123')
     sparql.setReturnFormat(JSON)
-    result = sparql.query().convert()
-
-    results=result['results']['bindings']
-
-
-    for i in results:
-        try:
-            #artworkImage.append(i['artworkImage']['value'])
-            artworkTitle.append(i['title']['value'])
-            #artworkWidth.append(i['width']['value'])
-            #artistId.append(i['artistID']['value'])
-        except:
-            pass
-'''
-    #print(artistId)
-    #for i in artistId:
-        #sparql.setQuery( """
-        #PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-        #PREFIX owl: <http://www.w3.org/2002/07/owl#>
-        #PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
-        #PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
-        #PREFIX ds: <http://purl.org/ctic/dcat#>
-        #PREFIX art: <http://w3id.org/art/terms/1.0/>
-        #PREFIX awssource1: <http://ec2-18-237-20-56.us-west-2.compute.amazonaws.com:3030/location-data/>
-        #PREFIX awssource2: <http://ec2-35-89-102-140.us-west-2.compute.amazonaws.com:3030/artwork-data/>
-        #PREFIX awssource3: <http://ec2-18-237-11-218.us-west-2.compute.amazonaws.com:3030/artist-data/>
-        #PREFIX artist:<http://www.semanticweb.org/rahul/ontologies/2021/10/sam-artist#>
-        #PREFIX artwork:<http://www.semanticweb.org/rahul/ontologies/2021/10/SAAM_Artwork#>
-        #PREFIX location:<http://www.semanticweb.org/rahul/ontologies/2021/10/location#>
-
-        SELECT DISTINCT ?FirstName ?LastName ?publicCaption ?artistImage
-        WHERE {
-        SERVICE awssource3:sparql {
-        ?artist artist:hasName ?FirstName.
-        ?artist artist:hasLastName ?LastName.
-        ?artist artist:hasImageURL ?artistImage.
-        ?artist artist:hasPubliccation ?publicCaption.
-        ?artist artist:hasArtistID ?ArtistID2.
-        FILTER (?ArtistID2 =""" + '"'+ i +'"'+ """)
-        }
-        }
-        """)
-
-
-        sparql.setReturnFormat(JSON)
-        result = sparql.query().convert()
-        print(result)
-
-        results=result['results']['bindings']
-
-        try:
-            artistFirstName.append(results[0]['FirstName']['value'])
-        except:
-            artistFirstName.append("Unavailable")
-        try:
-            artistLastName.append(results[0]['LastName']['value'])
-        except:
-            artistLastName.append("Unavailable")
-        try:
-            artistPublicCaption.append(results[0]['publicCaption']['value'])
-        except:
-            artistPublicCaption.append("Unavailable")
-        try:
-            artistImage.append(results[0]['artistImage']['value'])
-        except:
-            artistImage.append("Unavailable")
-
-   '''
-    #return artworkImage, artworkWidth, artworkTitle, artistFirstName, artistLastName, artistPublicCaption, artistImage
-    return artworkTitle
-    
+    return sparql
 
 @csrf_exempt 
-def searchByName(request):
-    keyString=""
-    if(request.method=='POST'):
-        keyString=request.POST['fname']
-    
-    artworkImages, artworkWidth, artworkTitle, artistFirstName, artistLastName, artistPublicCaption, artistImage =searchArtwork(keyString)
-    return render(request, 'searchByArtwork.html', {'artworkImages':artworkImages,'artworkWidth':artworkWidth,'artworkTitle':artworkTitle,'artistFirstName':artistFirstName,'artistLastName':artistLastName,'artworkTitle':artworkTitle,'artistImage':artistImage, 'artistPublicCaption':artistPublicCaption,'keystring':keyString})
+def search(request):
+    search_query = request.GET.get('searchInput', '')
+    search_type = request.GET.get('searchType', 'artist')
 
+    if search_type == 'artist':
+        return search_artist(search_query)
+    elif search_type == 'artwork':
+        return search_artwork(search_query)
+    else:
+        return HttpResponse("Invalid search type", status=400)
+
+
+
+def search_artist(artist_name):
+    try:
+        sparql = setup_sparql()
+        # Your SPARQL query setup and execution...
+        sparql.setQuery("""
+        PREFIX museum: <http://www.semanticweb.org/darsh/ontologies/2023/10/museum#>
+        SELECT DISTINCT ?artistName ?nationality ?gender ?constituentID ?bornYear ?deathYear ?artwork ?title
+        WHERE {{
+            ?artist a museum:Artist ;
+                    museum:hasName ?artistName ;
+                    museum:hasNationality ?nationality ;
+                    museum:hasGender ?gender ;
+                    museum:hasConstituentID ?constituentID ;
+                    museum:hasBornYear ?bornYear ;
+                    museum:hasDeathYear ?deathYear .
+            ?artwork museum:hasArtist ?artist ;
+                    museum:hasTitle ?title .
+
+            FILTER (regex(?artistName, "{}", "i"))
+        }}
+        LIMIT 7
+    """.format(artist_name))
+        results = sparql.query().convert()
+
+        if results:
+            # Process results and create context...
+            context = {'artists': results}  # Adjust this according to your actual data structure
+            return render(request, 'artists.html', context)
+        else:
+            return render(request, 'artists.html', {'error': 'No results found'})
+    except Exception as e:
+        print(f"Error in search_artist: {e}")
+        return render(request, 'artists.html', {'error': 'Error executing query'})
+
+
+def search_artwork(artwork_title):
+    # SPARQL query for artwork information
+    
+    sparql.setQuery("""
+        YOUR SPARQL QUERY FOR ARTWORK '{}'
+        (Adapt this query to match your ontology and data structure)
+    """.format(artwork_title))
+    sparql.setReturnFormat(JSON)
+    results = sparql.query().convert()
+
+    if results:
+        artwork_info = extract_artwork_info(results[0])  # Assuming results[0] is the first artwork
+        return render(request, 'artworks.html', {'artwork': artwork_info})
+    else:
+        return render(request, 'artworks.html', {'error': 'No results found'})
+
+
+
+def extract_artist_info(result):
+    # Extract artist information from result
+    # Implement logic based on result structure
+    return {
+        'name': result.get('Artist'),
+        'nationality': result.get('Nationality'),
+        'bornYear': result.get('BornYear'),
+        'deathYear': result.get('DeathYear'),
+        'gender': result.get('Gender'),
+        # Add more fields as necessary
+    }
+
+def extract_artworks_info(results):
+    # Extract artworks information from results
+    # Implement logic based on results structure
+    artworks = []
+    for result in results:
+        artworks.append({
+            'title': result.get('Title'),
+            'date': result.get('Date'),
+            'url': result.get('URL'),
+            # Add more fields as necessary
+        })
+    return artworks[:7]  # Limit to 7 artworks
+
+def extract_artwork_info(result):
+    # Extract artwork information from result
+    # Implement logic based on result structure
+    return {
+        'title': result.get('Title'),
+        'date': result.get('Date'),
+        'objectID': result.get('ObjectID'),
+        'url': result.get('URL'),
+        'department': result.get('Department'),
+        'artistName': result.get('Artist'),
+        # Add more fields as necessary
+    }
+
+def index(request):
+    return render(request, 'index.html')

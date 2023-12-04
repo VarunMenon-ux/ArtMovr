@@ -1,0 +1,33 @@
+/* Your CSS styles for all pages */
+/* Customize as per your design */
+
+body {
+    font-family: Arial, serif;
+    color: #000000;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #ffffff;
+    color: #000000;
+    padding: 20px;
+    text-align: center;
+}
+
+main {
+    padding: 20px;
+}
+
+a {
+    display: block;
+    margin-bottom: 10px;
+}
+
+body {
+    background-image: url('img3.jpeg');
+    background-size: cover;
+
+}
+
+/* Add more specific CSS for different sections as needed */
